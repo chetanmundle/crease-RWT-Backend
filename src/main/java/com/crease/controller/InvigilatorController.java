@@ -7,16 +7,20 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.crease.doa.InvigilatorRepos;
+import com.crease.entity.Contractor;
 import com.crease.entity.Invigilator;
 
 @RestController
@@ -35,12 +39,12 @@ public class InvigilatorController
 		try
 		{
 			Optional<Invigilator> findByAdharid = invigilatorRepos.findByAdharid(invigilator.getAdharid());
-			
-			if(findByAdharid.isPresent())
+
+			if (findByAdharid.isPresent())
 			{
 				return ResponseEntity.status(409).body("Adhar Id Alread Exist");
 			}
-			
+
 			Optional<Invigilator> findById = invigilatorRepos.findById(invigilator.getId());
 			if (findById.isEmpty())
 			{
@@ -71,7 +75,7 @@ public class InvigilatorController
 			return ResponseEntity.internalServerError().build();
 		}
 	}
-	
+
 //	Get one Invigilator
 	@GetMapping("/get/single/invigilator/id/{invigilatorid}")
 	public ResponseEntity<Invigilator> getOneInvigilator(@PathVariable("invigilatorid") String invigilatorid)
@@ -79,12 +83,13 @@ public class InvigilatorController
 		try
 		{
 			Optional<Invigilator> findById = invigilatorRepos.findById(invigilatorid);
-			if(findById.isPresent())
+			if (findById.isPresent())
 			{
 				Invigilator invigilator = findById.get();
 				return ResponseEntity.ok(invigilator);
-				
-			}else {
+
+			} else
+			{
 				return ResponseEntity.notFound().build();
 			}
 		} catch (Exception e)
@@ -92,7 +97,7 @@ public class InvigilatorController
 			return ResponseEntity.internalServerError().build();
 		}
 	}
-	
+
 //	Invigilator Login
 	@PostMapping("/post/invigilator/login")
 	public ResponseEntity<Map<String, Object>> invigilatorLogin(@RequestBody Map<String, Object> requestMap)
@@ -101,34 +106,76 @@ public class InvigilatorController
 		{
 			String id = (String) requestMap.get("id");
 			String pass = (String) requestMap.get("password");
-			
+
 			Optional<Invigilator> findByIdAndPassword = invigilatorRepos.findByIdAndPassword(id, pass);
-			
-			if(findByIdAndPassword.isPresent())
+
+			if (findByIdAndPassword.isPresent())
 			{
 				Invigilator invigilator = findByIdAndPassword.get();
-				
+
 				Map<String, Object> responseMap = new HashMap<>();
-				
+
 				responseMap.put("id", invigilator.getId());
 				responseMap.put("name", invigilator.getName());
 				responseMap.put("adharid", invigilator.getAdharid());
-			 	responseMap.put("phone", invigilator.getPhone());
+				responseMap.put("phone", invigilator.getPhone());
 				responseMap.put("email", invigilator.getEmail());
-				
+
 				return ResponseEntity.ok(responseMap);
-				
-				
-			}else {
+
+			} else
+			{
 				return ResponseEntity.notFound().build();
 			}
-		
+
 		} catch (Exception e)
 		{
 			return ResponseEntity.internalServerError().build();
 		}
-		
-		
+
+	}
+
+	@DeleteMapping("/delete/id/{invigilatorid}")
+	public ResponseEntity<String> deleteInvigilator(@PathVariable("invigilatorid") String invigilatorid)
+	{
+		try
+		{
+
+			Optional<Invigilator> findById = invigilatorRepos.findById(invigilatorid);
+			if (findById.isPresent())
+			{
+				invigilatorRepos.deleteById(invigilatorid);
+				return ResponseEntity.status(204).build();
+			} else
+			{
+				return ResponseEntity.status(404).build();
+			}
+
+		} catch (Exception e)
+		{
+			return ResponseEntity.internalServerError().build();
+		}
+	}
+	
+//	invigilator update
+	@PutMapping("/put/update")
+	public ResponseEntity<Object> updateContractor(@RequestBody Invigilator invigilator)
+	{
+		try
+		{
+			Optional<Invigilator> findById = invigilatorRepos.findById(invigilator.getId());
+			if(findById.isPresent())
+			{
+				Invigilator saveinvigilator = invigilatorRepos.save(invigilator);
+				
+				return ResponseEntity.ok(saveinvigilator);
+			}else {
+				return ResponseEntity.status(404).body("Invigilator not found");
+			}
+		} catch (Exception e)
+		{
+			return ResponseEntity.internalServerError().build();
+		}
 	}
 
 }
